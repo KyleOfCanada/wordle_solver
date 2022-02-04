@@ -1,0 +1,64 @@
+library(tidyverse)
+library(here)
+
+
+
+dat <- read_delim(here("data", "wordle-answers-alphabetical.txt"),
+                  delim = "\n",
+                  col_names = "value") %>% 
+  filter(str_detect(value,
+                    "^[:alpha:]{5}$")) %>% 
+  mutate(first = str_sub(value, 1, 1),
+         second = str_sub(value, 2, 2),
+         third = str_sub(value, 3, 3),
+         fourth = str_sub(value, 4, 4),
+         fifth = str_sub(value, 5, 5),
+         top_1000 = value %in% sw_fry_1000,
+         unique_letters = str_count(value, first) == 1 &
+           str_count(value, second) == 1 &
+           str_count(value, third) == 1 &
+           str_count(value, fourth) == 1 &
+           str_count(value, fifth) == 1,
+         vowels = str_count(value, "a|e|i|o|u"))
+
+guess <- function(){
+  
+  possible_words <- dat
+  
+  start_words <- dat %>% 
+    filter(unique_letters, vowels >= 3)
+  
+  Word <- sample(start_words$value, 1)
+  
+  # cat("\n\t", Word, "\n")
+  
+  results <- readline(str_c(Word, "\tresult? (x,i,y): "))
+  
+  while(nrow(possible_words) > 0) {
+    if(results == "yyyyy") {
+      cat("\n\tCongradulations!!!\n")
+      break
+    }
+    for(i in 1:5) {
+      result <- str_sub(results, i, i)
+      letter <- str_sub(Word, i, i)
+      if(result == "y") {
+        possible_words <- possible_words %>% 
+          filter(str_sub(value, i, i) == letter)
+      }
+      else if(result == "i") {
+        possible_words <- possible_words %>% 
+          filter(!str_sub(value, i, i) == letter,
+                 str_detect(value, letter))
+      }
+      else{
+        possible_words <- possible_words %>% 
+          filter(!str_detect(value, letter))
+      }
+    }
+    Word <- sample(possible_words$value, 1)
+    results <- readline(str_c(Word, "\tresult? (x,i,y): "))
+  }
+}
+
+guess()
