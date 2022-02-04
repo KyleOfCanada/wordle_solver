@@ -3,7 +3,8 @@ library(here)
 
 dat <- read_delim(here("data", "wordle-answers-alphabetical.txt"),
                   delim = "\n",
-                  col_names = "value") %>% 
+                  col_names = "value",
+                  col_types = 'c') %>% 
   filter(str_detect(value,
                     "^[:alpha:]{5}$")) %>% 
   mutate(first = str_sub(value, 1, 1),
@@ -19,6 +20,22 @@ dat <- read_delim(here("data", "wordle-answers-alphabetical.txt"),
          vowels = str_count(value, "a|e|i|o|u")) %>% 
   select(value, unique_letters, vowels)
 
+get_results <- function(Word) {
+  while(TRUE) {
+    results <- readline(str_c(Word, "\tresult? (x,i,y): "))
+    if(str_detect(results, "^[xiy]{5}$")) {
+      return(results)
+      break
+    }
+    if(nchar(results) != 5) {
+      cat("Incorrect number of characters entered!\n")
+    } else {
+      cat("Characters must be x (not in word), i (in word), or y (in word and in correct position)!\n")
+    }
+    
+  }
+}
+
 guess <- function() {
   
   possible_words <- dat
@@ -28,7 +45,7 @@ guess <- function() {
   
   Word <- sample(start_words$value, 1)
   
-  results <- readline(str_c(Word, "\tresult? (x,i,y): "))
+  results <- get_results(Word)
   
   while(nrow(possible_words) > 0) {
     if(results == "yyyyy") {
@@ -53,7 +70,7 @@ guess <- function() {
       }
     }
     Word <- sample(possible_words$value, 1)
-    results <- readline(str_c(Word, "\tresult? (x,i,y): "))
+    results <- get_results(Word)
   }
 }
 
