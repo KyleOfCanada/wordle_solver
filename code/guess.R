@@ -7,18 +7,12 @@ dat <- read_delim(here("data", "wordle-answers-alphabetical.txt"),
                   col_types = 'c') %>% 
   filter(str_detect(value,
                     "^[:alpha:]{5}$")) %>% 
-  mutate(first = str_sub(value, 1, 1),
-         second = str_sub(value, 2, 2),
-         third = str_sub(value, 3, 3),
-         fourth = str_sub(value, 4, 4),
-         fifth = str_sub(value, 5, 5),
-         unique_letters = str_count(value, first) == 1 &
-           str_count(value, second) == 1 &
-           str_count(value, third) == 1 &
-           str_count(value, fourth) == 1 &
-           str_count(value, fifth) == 1,
-         vowels = str_count(value, "a|e|i|o|u")) %>% 
-  select(value, unique_letters, vowels)
+  mutate(unique_letters = str_count(value, str_sub(value, 1, 1)) == 1 &
+           str_count(value, str_sub(value, 2, 2)) == 1 &
+           str_count(value, str_sub(value, 3, 3)) == 1 &
+           str_count(value, str_sub(value, 4, 4)) == 1 &
+           str_count(value, str_sub(value, 5, 5)) == 1,
+         vowels = str_count(value, "a|e|i|o|u"))
 
 get_results <- function(Word) {
   while(TRUE) {
