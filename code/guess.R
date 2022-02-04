@@ -1,6 +1,7 @@
 library(tidyverse)
 library(here)
 
+# Get list of words
 dat <- read_delim(here("data", "wordle-answers-alphabetical.txt"),
                   delim = "\n",
                   col_names = "value",
@@ -15,6 +16,7 @@ dat <- read_delim(here("data", "wordle-answers-alphabetical.txt"),
          vowels = str_count(value, "a|e|i|o|u"),
          weight = 0)
 
+# Count how often each letter appears
 letter_count <- function(x) {
   sum(str_count(dat$value, x))
 }
@@ -25,6 +27,7 @@ for(i in 1:26) {
   letter_counts$count[i] <- letter_count(letter_counts$letter[i]) 
 }
 
+# Function to assign weight to words based on letter frequency
 word_weight <- function(word) {
   weight <- 0
   for(i in 1:5) {
@@ -37,11 +40,14 @@ for(i in 1:nrow(dat)) {
   dat$weight[i] <- word_weight(dat$value[i])
 }
 
+# Increase weight if word has all unique letters
 dat <- dat %>% 
-  mutate(weight = weight + if_else(unique_letters, 1000, 0))
+  mutate(weight = weight + if_else(unique_letters, 1500, 0))
 
+# Transform rank into descending rank by weight
 dat$weight <- rank(-dat$weight)
 
+# Function to take user input
 get_results <- function(Word, guess_count) {
   while(TRUE) {
     results <- readline(str_c(guess_count, "/6\t\"", Word, "\"\tresult? (x,i,y): "))
@@ -57,10 +63,12 @@ get_results <- function(Word, guess_count) {
   }
 }
 
+# Main function that guesses
 guess <- function() {
   
   possible_words <- dat
   
+  # Get a good starting word, all unique letters, atleast 3 vowels
   start_words <- dat %>% 
     filter(unique_letters, vowels >= 3)
   
@@ -68,19 +76,25 @@ guess <- function() {
   
   guess_count <- 1
   
+  # Make first guess
   results <- get_results(Word, guess_count)
   
+  # Loop through guesses until solved
   while(nrow(possible_words) > 0) {
+    
+    # Win condition
     if(results == "yyyyy") {
-      cat("\n\tCongradulations!!!\n")
+      cat("\n\tCongradulations!!!\n\n")
       break
     }
     
+    # Fail condition
     if(guess_count == 6) {
       cat("\n\tOut of Guesses\n")
       break
     }
     
+    # Filter possible words based on results of guess
     for(i in 1:5) {
       result <- str_sub(results, i, i)
       letter <- str_sub(Word, i, i)
@@ -99,8 +113,8 @@ guess <- function() {
       }
     }
     
+    # Make next guess
     guess_count <- guess_count + 1
-    
     Word <- sample(possible_words$value, 1, prob = possible_words$weight)
     results <- get_results(Word, guess_count)
   }
