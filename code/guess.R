@@ -48,9 +48,9 @@ dat <- dat %>%
 dat$weight <- rank(-dat$weight)
 
 # Function to take user input
-get_results <- function(Word, guess_count) {
+get_results <- function(Word, guess_count, possible) {
   while(TRUE) {
-    results <- readline(str_c(guess_count, "/6\t\"", Word, "\"\tresult? (x,i,y): "))
+    results <- readline(str_c(guess_count, "/6\t",nrow(possible), "\t\"", Word, "\"\tresult? (x,i,y): "))
     if(str_detect(results, "^[xiy]{5}$")) {
       return(results)
       break
@@ -77,7 +77,7 @@ guess <- function() {
   guess_count <- 1
   
   # Make first guess
-  results <- get_results(Word, guess_count)
+  results <- get_results(Word, guess_count, possible_words)
   
   # Loop through guesses until solved
   while(nrow(possible_words) > 0) {
@@ -94,6 +94,8 @@ guess <- function() {
       break
     }
     
+    included_letters <- NULL
+    
     # Filter possible words based on results of guess
     for(i in 1:5) {
       result <- str_sub(results, i, i)
@@ -101,22 +103,33 @@ guess <- function() {
       if(result == "y") {
         possible_words <- possible_words %>% 
           filter(str_sub(value, i, i) == letter)
-      }
-      else if(result == "i") {
+        included_letters <- str_c(included_letters, letter)
+      } else if(result == "i") {
         possible_words <- possible_words %>% 
           filter(!str_sub(value, i, i) == letter,
                  str_detect(value, letter))
-      }
-      else{
-        possible_words <- possible_words %>% 
-          filter(!str_detect(value, letter))
+        included_letters <- str_c(included_letters, letter)
+      } else {
+        if(!str_detect(included_letters, letter)) {
+          possible_words <- possible_words %>% 
+            filter(!str_detect(value, letter))
+        } else {
+          y_positions <- str_locate_all(results, "y")[[1]][,1]
+          letter_positions <- str_locate_all(Word, letter)[[1]][,1]
+          correct_positions <- y_positions[y_positions %in% letter_positions]
+          
+          for(ii in (1:5)[!(1:5 %in% correct_positions)] ) {
+            possible_words <- possible_words %>%
+              filter(!(str_sub(value, ii, ii) == letter))
+          }
+        }
       }
     }
     
     # Make next guess
     guess_count <- guess_count + 1
     Word <- sample(possible_words$value, 1, prob = possible_words$weight)
-    results <- get_results(Word, guess_count)
+    results <- get_results(Word, guess_count, possible_words)
   }
 }
 
