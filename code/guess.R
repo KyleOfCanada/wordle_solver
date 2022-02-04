@@ -37,11 +37,14 @@ for(i in 1:nrow(dat)) {
   dat$weight[i] <- word_weight(dat$value[i])
 }
 
+dat <- dat %>% 
+  mutate(weight = weight + if_else(unique_letters, 1000, 0))
+
 dat$weight <- rank(-dat$weight)
 
-get_results <- function(Word) {
+get_results <- function(Word, guess_count) {
   while(TRUE) {
-    results <- readline(str_c(Word, "\tresult? (x,i,y): "))
+    results <- readline(str_c(guess_count, "/6\t\"", Word, "\"\tresult? (x,i,y): "))
     if(str_detect(results, "^[xiy]{5}$")) {
       return(results)
       break
@@ -63,13 +66,21 @@ guess <- function() {
   
   Word <- sample(start_words$value, 1, prob = start_words$weight)
   
-  results <- get_results(Word)
+  guess_count <- 1
+  
+  results <- get_results(Word, guess_count)
   
   while(nrow(possible_words) > 0) {
     if(results == "yyyyy") {
       cat("\n\tCongradulations!!!\n")
       break
     }
+    
+    if(guess_count == 6) {
+      cat("\n\tOut of Guesses\n")
+      break
+    }
+    
     for(i in 1:5) {
       result <- str_sub(results, i, i)
       letter <- str_sub(Word, i, i)
@@ -88,8 +99,10 @@ guess <- function() {
       }
     }
     
+    guess_count <- guess_count + 1
+    
     Word <- sample(possible_words$value, 1, prob = possible_words$weight)
-    results <- get_results(Word)
+    results <- get_results(Word, guess_count)
   }
 }
 
