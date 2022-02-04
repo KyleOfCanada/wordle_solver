@@ -90,11 +90,15 @@ guess <- function() {
     
     # Fail condition
     if(guess_count == 6) {
-      cat("\n\tOut of Guesses\n")
+      cat("\n\tOut of Guesses\n\n")
       break
     }
     
     included_letters <- NULL
+    y_positions <- str_locate_all(results, "y|i")[[1]][,1]
+    for(ii in (1:5)[!(1:5 %in% y_positions)] ) {
+      included_letters <- str_c(included_letters, str_sub(Word, ii, ii))
+    }
     
     # Filter possible words based on results of guess
     for(i in 1:5) {
@@ -103,18 +107,19 @@ guess <- function() {
       if(result == "y") {
         possible_words <- possible_words %>% 
           filter(str_sub(value, i, i) == letter)
-        included_letters <- str_c(included_letters, letter)
       } else if(result == "i") {
         possible_words <- possible_words %>% 
           filter(!str_sub(value, i, i) == letter,
                  str_detect(value, letter))
-        included_letters <- str_c(included_letters, letter)
       } else {
-        if(!str_detect(included_letters, letter)) {
+        if(length(included_letters) == 0) {
+          possible_words <- possible_words %>% 
+            filter(!str_detect(value, letter))
+        } else if(!str_detect(included_letters, letter)) {
           possible_words <- possible_words %>% 
             filter(!str_detect(value, letter))
         } else {
-          y_positions <- str_locate_all(results, "y")[[1]][,1]
+          y_positions <- str_locate_all(results, "y|i")[[1]][,1]
           letter_positions <- str_locate_all(Word, letter)[[1]][,1]
           correct_positions <- y_positions[y_positions %in% letter_positions]
           
