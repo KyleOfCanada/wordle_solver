@@ -1,8 +1,6 @@
 library(tidyverse)
 library(here)
 
-
-
 dat <- read_delim(here("data", "wordle-answers-alphabetical.txt"),
                   delim = "\n",
                   col_names = "value") %>% 
@@ -13,15 +11,15 @@ dat <- read_delim(here("data", "wordle-answers-alphabetical.txt"),
          third = str_sub(value, 3, 3),
          fourth = str_sub(value, 4, 4),
          fifth = str_sub(value, 5, 5),
-         top_1000 = value %in% sw_fry_1000,
          unique_letters = str_count(value, first) == 1 &
            str_count(value, second) == 1 &
            str_count(value, third) == 1 &
            str_count(value, fourth) == 1 &
            str_count(value, fifth) == 1,
-         vowels = str_count(value, "a|e|i|o|u"))
+         vowels = str_count(value, "a|e|i|o|u")) %>% 
+  select(value, unique_letters, vowels)
 
-guess <- function(){
+guess <- function() {
   
   possible_words <- dat
   
@@ -29,8 +27,6 @@ guess <- function(){
     filter(unique_letters, vowels >= 3)
   
   Word <- sample(start_words$value, 1)
-  
-  # cat("\n\t", Word, "\n")
   
   results <- readline(str_c(Word, "\tresult? (x,i,y): "))
   
