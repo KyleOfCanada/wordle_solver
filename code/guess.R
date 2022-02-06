@@ -47,22 +47,6 @@ dat <- dat %>%
 # Transform rank into descending rank by weight
 dat$weight <- rank(-dat$weight)
 
-# Function to take user input
-get_results <- function(Word, guess_count, possible) {
-  while(TRUE) {
-    results <- readline(str_c(guess_count, "/6\t",nrow(possible), "\t\"", Word, "\"\tresult? (x,i,y): "))
-    if(str_detect(results, "^[xiy]{5}$")) {
-      return(results)
-      break
-    }
-    if(nchar(results) != 5) {
-      cat("Incorrect number of characters entered!\n")
-    } else {
-      cat("Characters must be x (not in word), i (in word), or y (in word and in correct position)!\n")
-    }
-  }
-}
-
 # Main function that guesses
 guess <- function() {
   
@@ -75,6 +59,22 @@ guess <- function() {
   Word <- sample(start_words$value, 1, prob = start_words$weight)
   
   guess_count <- 1
+  
+  # Sub-function to take user input
+  get_results <- function(Word, guess_count, possible) {
+    while(TRUE) {
+      results <- readline(str_c(guess_count, "/6\t",nrow(possible), "\t\"", Word, "\"\tresult? (x,i,y): "))
+      if(str_detect(results, "^[xiy]{5}$")) {
+        return(results)
+        break
+      }
+      if(nchar(results) != 5) {
+        cat("Incorrect number of characters entered!\n")
+      } else {
+        cat("Characters must be x (not in word), i (in word), or y (in word and in correct position)!\n")
+      }
+    }
+  }
   
   # Make first guess
   results <- get_results(Word, guess_count, possible_words)
