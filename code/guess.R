@@ -134,6 +134,17 @@ guess <- function() {
       }
     }
     # Re weight words
+    letter_count <- function(x) {
+      sum(str_count(possible_words$value, x))
+    }
+    
+    letter_counts <- tibble(letter = letters, count = 0)
+    
+    for(i in 1:26) {
+      letter_counts$count[i] <- letter_count(letter_counts$letter[i]) 
+    }
+    
+    
     for(i in 1:nrow(possible_words)) {
       possible_words$weight[i] <- word_weight(possible_words$value[i])
     }
