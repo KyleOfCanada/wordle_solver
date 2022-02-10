@@ -156,9 +156,12 @@ guess <- function() {
     # Transform rank into descending rank by weight
     possible_words$weight <- rank(-possible_words$weight)
     
+    possible_words %>% 
+      arrange(desc(weight))
+    
     # Make next guess
     guess_count <- guess_count + 1
-    Word <- sample(possible_words$value, 1, prob = possible_words$weight)
+    Word <- first(possible_words$value) # sample(possible_words$value, 1, prob = possible_words$weight)
     results <- get_results(Word, guess_count, possible_words)
   }
 }
