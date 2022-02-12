@@ -6,8 +6,6 @@ dat <- read_delim(here("data", "wordle-answers-alphabetical.txt"),
                   delim = "\n",
                   col_names = "value",
                   col_types = 'c') %>% 
-  # filter(str_detect(value,
-  #                   "^[:alpha:]{5}$")) %>% 
   mutate(unique_letters = str_count(value, str_sub(value, 1, 1)) == 1 &
            str_count(value, str_sub(value, 2, 2)) == 1 &
            str_count(value, str_sub(value, 3, 3)) == 1 &
@@ -27,25 +25,24 @@ for(i in 1:26) {
   letter_counts$count[i] <- letter_count(letter_counts$letter[i]) 
 }
 
-# Function to assign weight to words based on letter frequency
 word_weight <- function(word) {
   weight <- 0
+  lttrs <- list(NULL)
   for(i in 1:5) {
-   weight <- weight + letter_counts$count[letter_counts$letter == str_sub(word, i, i)]
+    letter <- str_sub(word, i, i)
+    if(letter %in% lttrs) {
+      break
+    } else {
+      lttrs <- c(lttrs, letter)
+      weight <- weight + letter_counts$count[letter_counts$letter == letter]
+    }
   }
   return(weight)
-}       
+}
 
 for(i in 1:nrow(dat)) {
   dat$weight[i] <- word_weight(dat$value[i])
 }
-
-# Increase weight if word has all unique letters
-dat <- dat %>% 
-  mutate(weight = weight + if_else(unique_letters, nrow(dat)/4, 0))
-
-# Transform rank into descending rank by weight
-dat$weight <- rank(-dat$weight)
 
 # Main function that guesses
 guess <- function() {
@@ -119,20 +116,12 @@ guess <- function() {
           possible_words <- possible_words %>% 
             filter(!str_detect(value, letter))
         } else {
-          # y_correct_pos <- str_locate_all(results, "y")[[1]][,1]
-          # letter_positions <- str_locate_all(Word, letter)[[1]][,1]
-          # correct_positions <- y_correct_pos[y_correct_pos %in% letter_positions]
-          
           possible_words <- possible_words %>%
             filter(!(str_sub(value, i, i) == letter))
-          
-          # for(ii in (1:5)[!(1:5 %in% correct_positions)] ) {
-          #   possible_words <- possible_words %>%
-          #     filter(!(str_sub(value, ii, ii) == letter))
-          # }
         }
       }
     }
+    
     # Re weight words
     letter_count <- function(x) {
       sum(str_count(possible_words$value, x))
@@ -144,24 +133,16 @@ guess <- function() {
       letter_counts$count[i] <- letter_count(letter_counts$letter[i]) 
     }
     
-    
     for(i in 1:nrow(possible_words)) {
       possible_words$weight[i] <- word_weight(possible_words$value[i])
     }
-    
-    # Increase weight if word has all unique letters
-    possible_words <- possible_words %>% 
-      mutate(weight = weight + if_else(unique_letters, nrow(possible_words)/4, 0))
-    
-    # Transform rank into descending rank by weight
-    possible_words$weight <- rank(-possible_words$weight)
     
     possible_words %>% 
       arrange(desc(weight))
     
     # Make next guess
     guess_count <- guess_count + 1
-    Word <- first(possible_words$value) # sample(possible_words$value, 1, prob = possible_words$weight)
+    Word <- first(possible_words$value)
     results <- get_results(Word, guess_count, possible_words)
   }
 }
