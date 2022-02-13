@@ -50,7 +50,7 @@ guess <- function() {
   
   possible_words <- dat
   
-  # Get a good starting word, all unique letters, atleast 3 vowels
+  # Get a good starting word, all unique letters, at least 3 vowels
   start_words <- dat %>% 
     filter(unique_letters, vowels >= 4)
   
@@ -147,7 +147,7 @@ guess <- function() {
       return(weight)
     }
     
-    if(guess_count == 1) {
+    if(guess_count == 1 & nrow(possible_words) > 25) {
       for(i in 1:nrow(dat)) {
         dat$weight[i] <- word_weight(dat$value[i])
       }
