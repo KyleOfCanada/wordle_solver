@@ -15,14 +15,15 @@ dat <- read_delim(here("data", "wordle-answers-alphabetical.txt"),
          weight = 0)
 
 # Count how often each letter appears
-letter_count <- function(x) {
-  sum(str_count(dat$value, x))
-}
-
-letter_counts <- tibble(letter = letters, count = 0)
+letter_counts <- tibble(letter = letters, first = 0, second = 0, third = 0, fourth = 0, fifth = 0)
 
 for(i in 1:26) {
-  letter_counts$count[i] <- letter_count(letter_counts$letter[i]) 
+  letter <- letter_counts$letter[i]
+  
+  for(ii in 1:5) {
+    cnt <- sum(str_count(str_sub(dat$value, ii, ii), letter))
+    letter_counts[i, ii + 1] <- cnt
+  }
 }
 
 word_weight <- function(word) {
@@ -34,7 +35,7 @@ word_weight <- function(word) {
       break
     } else {
       lttrs <- c(lttrs, letter)
-      weight <- weight + letter_counts$count[letter_counts$letter == letter]
+      weight <- weight + sum(letter_counts[letter_counts$letter == letter, 2:6])
     }
   }
   return(weight)
@@ -122,13 +123,28 @@ guess <- function() {
       }
     }
     
-    # Re weight words
-    letter_count <- function(x) {
-      sum(str_count(possible_words$value, x))
+    for(i in 1:26) {
+      letter <- letter_counts$letter[i]
+      
+      for(ii in 1:5) {
+        cnt <- sum(str_count(str_sub(possible_words$value, ii, ii), letter))
+        letter_counts[i, ii + 1] <- cnt
+      }
     }
     
-    for(i in 1:26) {
-      letter_counts$count[i] <- letter_count(letter_counts$letter[i]) 
+    word_weight <- function(word) {
+      weight <- 0
+      lttrs <- list(NULL)
+      for(i in 1:5) {
+        letter <- str_sub(word, i, i)
+        if(letter %in% lttrs) {
+          break
+        } else {
+          lttrs <- c(lttrs, letter)
+          weight <- weight + sum(letter_counts[letter_counts$letter == letter, 2:6])
+        }
+      }
+      return(weight)
     }
     
     if(guess_count == 1) {
