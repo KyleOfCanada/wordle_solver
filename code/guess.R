@@ -51,6 +51,10 @@ guess <- function() {
   
   possible_words <- dat
   
+  solved_letters <- c(NA, NA, NA, NA, NA)
+  
+  # solved_count <- 0
+  
   # Get a good starting word
   start_words <- dat %>%
     filter(weight == max(weight))
@@ -104,6 +108,8 @@ guess <- function() {
       result <- str_sub(results, i, i)
       letter <- str_sub(Word, i, i)
       if(result == "y") {
+        solved_letters[i] <- letter
+        
         possible_words <- possible_words %>% 
           filter(str_sub(value, i, i) == letter)
       } else if(result == "i") {
@@ -128,8 +134,15 @@ guess <- function() {
       letter <- letter_counts$letter[i]
       
       for(ii in 1:5) {
-        cnt <- sum(str_count(str_sub(possible_words$value, ii, ii), letter))
-        letter_counts[i, ii + 1] <- cnt
+        if(is.na(solved_letters[ii])) {
+          cnt <- sum(str_count(str_sub(possible_words$value, ii, ii), letter))
+          letter_counts[i, ii + 1] <- cnt
+        } else if(solved_letters[ii] == letter){
+          letter_counts[i, ii + 1] <- 0
+        } else {
+          cnt <- sum(str_count(str_sub(possible_words$value, ii, ii), letter))
+          letter_counts[i, ii + 1] <- cnt
+        }
       }
     }
     
@@ -139,46 +152,35 @@ guess <- function() {
       for(i in 1:5) {
         letter <- str_sub(word, i, i)
         if(letter %in% lttrs) {
-          break
+          weight <- weight + sum(letter_counts[letter_counts$letter == letter, i + 1])
         } else {
           lttrs <- c(lttrs, letter)
-          weight <- weight + sum(letter_counts[letter_counts$letter == letter, 2:6])
+          weight <- weight + sum(letter_counts[letter_counts$letter == letter, i + 1])
+          weight <- weight + sum(letter_counts[letter_counts$letter == letter, 2:6])/5
         }
       }
       return(weight)
     }
     
-    if(guess_count == 1 & nrow(possible_words) > 25) {
-      for(i in 1:nrow(dat)) {
-        dat$weight[i] <- word_weight(dat$value[i])
-      }
-      
-      dat <- dat %>% 
-        arrange(desc(weight))
-      
-      # Make next guess
-      guess_count <- guess_count + 1
-      Word <- first(dat$value)
-      results <- get_results(Word, guess_count, possible_words)
+    for(i in 1:nrow(dat)) {
+      dat$weight[i] <- word_weight(dat$value[i])
+    }
+    
+    # Make next guess
+    guess_count <- guess_count + 1
+    
+    # Select solved word or a high weight word
+    if(sum(is.na(solved_letters)) == 0) {
+      Word <- str_c(solved_letters, collapse = "")
+    } else if (nrow(possible_words) <= 2) {
+      Word <- possible_words$value[1]
     } else {
-      for(i in 1:nrow(possible_words)) {
-        possible_words$weight[i] <- word_weight(possible_words$value[i])
-      }
-      
-      possible_words <- possible_words %>% 
-        arrange(desc(weight))
-      
-      # Make next guess
-      guess_count <- guess_count + 1
-
-      # Select a high weight word
-      guess_words <- possible_words %>%
+      guess_words <- dat %>%
         filter(weight == max(weight))
       
       Word <- sample(guess_words$value, 1)
-      
-      results <- get_results(Word, guess_count, possible_words)
     }
+    results <- get_results(Word, guess_count, possible_words)
   }
 }
 
