@@ -32,10 +32,11 @@ word_weight <- function(word) {
   for(i in 1:5) {
     letter <- str_sub(word, i, i)
     if(letter %in% lttrs) {
-      break
+      weight <- weight + sum(letter_counts[letter_counts$letter == letter, i + 1])
     } else {
       lttrs <- c(lttrs, letter)
-      weight <- weight + sum(letter_counts[letter_counts$letter == letter, 2:6])
+      weight <- weight + sum(letter_counts[letter_counts$letter == letter, i + 1]) 
+      weight <- weight + sum(letter_counts[letter_counts$letter == letter, 2:6])/5
     }
   }
   return(weight)
@@ -50,11 +51,11 @@ guess <- function() {
   
   possible_words <- dat
   
-  # Get a good starting word, all unique letters, at least 3 vowels
-  start_words <- dat %>% 
-    filter(unique_letters, vowels >= 4)
+  # Get a good starting word
+  start_words <- dat %>%
+    filter(weight == max(weight))
   
-  Word <- sample(start_words$value, 1, prob = start_words$weight)
+  Word <- sample(start_words$value, 1)
   
   guess_count <- 1
   
@@ -169,7 +170,13 @@ guess <- function() {
       
       # Make next guess
       guess_count <- guess_count + 1
-      Word <- first(possible_words$value)
+
+      # Select a high weight word
+      guess_words <- possible_words %>%
+        filter(weight == max(weight))
+      
+      Word <- sample(guess_words$value, 1)
+      
       results <- get_results(Word, guess_count, possible_words)
     }
   }
