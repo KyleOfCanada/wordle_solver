@@ -63,10 +63,12 @@ guess <- function() {
   
   guess_count <- 1
   
+  cat("Round\tWords Left\tGuess\t\t\t Result")
+  
   # Sub-function to take user input
   get_results <- function(Word, guess_count, possible) {
     while(TRUE) {
-      results <- readline(str_c(guess_count, "/6\t",nrow(possible), "\t\"", Word, "\"\tresult? (x,i,y): "))
+      results <- readline(str_c(guess_count, "/6\t",nrow(possible), "\t\t\"", Word, "\"\tresult? (x,i,y): "))
       if(str_detect(results, "^[xiy]{5}$")) {
         return(results)
         break
