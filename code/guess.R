@@ -172,10 +172,12 @@ guess <- function() {
     guess_count <- guess_count + 1
     
     # Select solved word or a high weight word
-    if(sum(is.na(solved_letters)) == 0) {
+    if(guess_count == 6) {
+      Word <- sample(possible_words$value, 1)
+    } else if(sum(is.na(solved_letters)) == 0) {
       Word <- str_c(solved_letters, collapse = "")
     } else if (nrow(possible_words) <= 2) {
-      Word <- possible_words$value[1]
+      Word <- sample(possible_words$value, 1)
     } else {
       guess_words <- dat %>%
         filter(weight == max(weight))
