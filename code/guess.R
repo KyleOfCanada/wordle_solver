@@ -89,7 +89,7 @@ guess <- function() {
     
     # Win condition
     if(results == "yyyyy") {
-      cat("\n\tCongradulations!!!\n\n")
+      cat("\n\tCongratulations!!!\n\n")
       break
     }
     
