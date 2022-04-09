@@ -66,7 +66,7 @@ guess <- function() {
   
   guess_count <- 1
   
-  cat("Round\tWords Left\tGuess\t\t\t Result")
+  cat("Round\tWords Left\tGuess\t\t\t Result\n")
   
   # Sub-function to take user input
   get_results <- function(Word, guess_count, possible) {
