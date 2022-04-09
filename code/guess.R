@@ -1,4 +1,7 @@
-library(tidyverse)
+library(readr)
+library(stringr)
+library(dplyr)
+library(magrittr)
 library(here)
 
 # Get list of words
