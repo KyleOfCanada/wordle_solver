@@ -29,6 +29,15 @@ for(i in 1:26) {
   }
 }
 
+#' Calculate the weight of a 5 letter word
+#'
+#' @param word a 5 letter string
+#'
+#' @return number
+#' @export
+#'
+#' @examples
+#' word_weight("slate")
 word_weight <- function(word) {
   weight <- 0
   lttrs <- list(NULL)
@@ -49,7 +58,15 @@ for(i in 1:nrow(dat)) {
   dat$weight[i] <- word_weight(dat$value[i])
 }
 
-# Main function that guesses
+#' Main function that guesses words and solves puzzle
+#'
+#' Provides words to use as guesses and prompts user for input on the results of the guesses.
+#'
+#' @return none
+#' @export
+#'
+#' @examples
+#' guess()
 guess <- function() {
   
   possible_words <- dat
