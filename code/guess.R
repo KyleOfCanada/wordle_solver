@@ -8,7 +8,7 @@ library(here)
 dat <- read_delim(here("data", "wordle-answers-alphabetical.txt"),
                   delim = "\n",
                   col_names = "value",
-                  col_types = 'c') %>% 
+                  col_types = "c") %>%
   mutate(unique_letters = str_count(value, str_sub(value, 1, 1)) == 1 &
            str_count(value, str_sub(value, 2, 2)) == 1 &
            str_count(value, str_sub(value, 3, 3)) == 1 &
@@ -18,12 +18,17 @@ dat <- read_delim(here("data", "wordle-answers-alphabetical.txt"),
          weight = 0)
 
 # Count how often each letter appears
-letter_counts <- tibble(letter = letters, first = 0, second = 0, third = 0, fourth = 0, fifth = 0)
+letter_counts <- tibble(letter = letters,
+  first = 0,
+  second = 0,
+  third = 0,
+  fourth = 0,
+  fifth = 0)
 
-for(i in 1:26) {
+for (i in 1:26) {
   letter <- letter_counts$letter[i]
-  
-  for(ii in 1:5) {
+
+  for (ii in 1:5) {
     cnt <- sum(str_count(str_sub(dat$value, ii, ii), letter))
     letter_counts[i, ii + 1] <- cnt
   }
@@ -41,26 +46,30 @@ for(i in 1:26) {
 word_weight <- function(word) {
   weight <- 0
   lttrs <- list(NULL)
-  for(i in 1:5) {
+  for (i in 1:5) {
     letter <- str_sub(word, i, i)
-    if(letter %in% lttrs) {
-      weight <- weight + sum(letter_counts[letter_counts$letter == letter, i + 1])
+    if (letter %in% lttrs) {
+      weight <- weight +
+        sum(letter_counts[letter_counts$letter == letter, i + 1])
     } else {
       lttrs <- c(lttrs, letter)
-      weight <- weight + sum(letter_counts[letter_counts$letter == letter, i + 1]) 
-      weight <- weight + sum(letter_counts[letter_counts$letter == letter, 2:6])/5
+      weight <- weight +
+        sum(letter_counts[letter_counts$letter == letter, i + 1])
+      weight <- weight +
+        sum(letter_counts[letter_counts$letter == letter, 2:6]) / 5
     }
   }
   return(weight)
 }
 
-for(i in 1:nrow(dat)) {
+for (i in seq_len(nrow(dat))) {
   dat$weight[i] <- word_weight(dat$value[i])
 }
 
 #' Main function that guesses words and solves puzzle
 #'
-#' Provides words to use as guesses and prompts user for input on the results of the guesses.
+#' Provides words to use as guesses and prompts user
+#'  for input on the results of the guesses.
 #'
 #' @return none
 #' @export
@@ -184,7 +193,7 @@ guess <- function() {
       return(weight)
     }
     
-    for(i in 1:nrow(dat)) {
+    for(i in seq_len(nrow(dat))) {
       dat$weight[i] <- word_weight(dat$value[i])
     }
     
